@@ -1,0 +1,6 @@
+{
+  "name": "映えチェッカーくん",
+  "description": "LINEスタンプの申請前に、本物のトーク画面そっくりな環境で表示を確認できるプレビューツールです。",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
