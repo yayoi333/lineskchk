@@ -15,9 +15,7 @@ interface PhonePreviewProps {
   onRemoveMessage: (id: string) => void;
   setCurrentTyping: (val: string) => void;
   talkRef: React.RefObject<HTMLDivElement | null>;
-  phoneFrameRef: React.RefObject<HTMLDivElement | null>;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
-  allStickers: Sticker[];
   activePanelTab: 'sticker' | 'emoji';
   setActivePanelTab: React.Dispatch<React.SetStateAction<'sticker' | 'emoji'>>;
   stickerGroups: StickerGroup[];
@@ -32,6 +30,7 @@ interface PhonePreviewProps {
   isMobileFullscreen?: boolean;
   setIsMobileFullscreen?: (val: boolean) => void;
   onToggleSender?: (id: string) => void;
+  onAddReaction?: (id: string) => void;
 }
 
 export const PhonePreview: React.FC<PhonePreviewProps> = ({
@@ -44,9 +43,7 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({
   onRemoveMessage,
   setCurrentTyping,
   talkRef,
-  phoneFrameRef,
   messagesEndRef,
-  allStickers,
   activePanelTab,
   setActivePanelTab,
   stickerGroups,
@@ -60,7 +57,8 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({
   getContrastColor,
   isMobileFullscreen = false,
   setIsMobileFullscreen,
-  onToggleSender
+  onToggleSender,
+  onAddReaction
 }) => {
   const isCaniSend = inputText.length > 0 || currentTyping.trim().length > 0;
 
@@ -70,8 +68,6 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({
 
   return (
     <div 
-      id="smartphone-frame" 
-      ref={phoneFrameRef}
       className={`relative bg-white flex flex-col shrink-0 origin-top shadow-2xl transition-all duration-300 ${
         isMobileFullscreen 
           ? 'w-full h-full rounded-none border-0 scale-100 mb-0' 
@@ -104,7 +100,9 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({
           backgroundPosition: 'center top',
           backgroundRepeat: 'no-repeat',
           backgroundSize: settings.backgroundColor === 'image' ? 'cover' : undefined,
-          color: getContrastColor(settings.backgroundColor === 'default' ? '#86A8D6' : (settings.backgroundColor === 'image' ? '#000000' : settings.backgroundColor))
+          color: settings.backgroundColor === 'default' 
+            ? 'black' 
+            : getContrastColor(settings.backgroundColor === 'image' ? '#000000' : settings.backgroundColor)
         }}
       >
         <div className="flex items-center gap-3 min-w-0 pr-4">
@@ -146,10 +144,10 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({
                 msg={msg}
                 isFirstInSequence={isFirstInSequence}
                 isLastInSequence={isLastInSequence}
-                allStickers={allStickers}
                 onRemove={onRemoveMessage}
                 formatTime={formatTime}
                 onToggleSender={onToggleSender}
+                onAddReaction={onAddReaction}
                 settings={settings}
               />
             );
@@ -214,7 +212,7 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({
       </div>
 
       {/* Panel */}
-      <div className="screenshot-ignore">
+      <div>
         <StickerPanel 
           activePanelTab={activePanelTab}
           setActivePanelTab={setActivePanelTab}

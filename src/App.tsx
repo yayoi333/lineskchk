@@ -6,7 +6,7 @@
 // Developed by yayoi, 2026.
 // X/Threads: @yayoi_threee
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import JSZip from 'jszip';
 import { 
   CheckCircle2
@@ -48,27 +48,38 @@ export default function App() {
     setActiveEmojiGroupId,
     addStickerGroup,
     addEmojiGroup,
+    removeStickerGroup,
+    removeEmojiGroup,
   } = useStickerGroups();
+
+  const handleRemoveGroup = (group: StickerGroup) => {
+    // 使用している環境(iframe)によってはconfirmが即座にキャンセルされる場合があるため、setTimeoutで囲います
+    setTimeout(() => {
+      const text = `「${group.name}」を削除しますか？\n(送信済みのメッセージは消えません)`;
+      if (window.confirm(text)) {
+        if (group.category === 'sticker') {
+          removeStickerGroup(group.id);
+        } else {
+          removeEmojiGroup(group.id);
+        }
+        setValidationResult(null);
+      }
+    }, 10);
+  };
 
   // --- State ---
   const [inputText, setInputText] = useState<(string | Sticker)[]>([]);
   const [currentTyping, setCurrentTyping] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [reactionTargetId, setReactionTargetId] = useState<string | null>(null);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const [activePanelTab, setActivePanelTab] = useState<'sticker' | 'emoji'>('sticker');
   const [isMobileFullscreen, setIsMobileFullscreen] = useState(false);
 
   // --- Refs ---
   const talkRef = useRef<HTMLDivElement>(null);
-  const phoneFrameRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
-
-  // --- Derived ---
-  const allStickers = useMemo(() => [
-    ...stickerGroups.flatMap((g) => g.stickers), 
-    ...emojiGroups.flatMap((g) => g.stickers)
-  ], [stickerGroups, emojiGroups]);
 
   // --- Effects ---
   useEffect(() => {
@@ -76,6 +87,31 @@ export default function App() {
       talkRef.current.scrollTop = talkRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // --- Utilities ---
+  const blobToDataUrl = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  const stickerToPreviewSticker = async (sticker: Sticker): Promise<Sticker> => {
+    if (!sticker.blob) return { ...sticker };
+    try {
+      const dataUrl = await blobToDataUrl(sticker.blob);
+      return {
+        ...sticker,
+        url: dataUrl,
+        blob: undefined, // No longer need blob for the preview copy
+      };
+    } catch (err) {
+      console.error('Failed to convert sticker to Data URL', err);
+      return { ...sticker };
+    }
+  };
 
   // --- Handlers ---
   const handleZipUpload = async (e: React.ChangeEvent<HTMLInputElement>, category: 'sticker' | 'emoji' = 'sticker') => {
@@ -132,7 +168,8 @@ export default function App() {
         } else if (lowerName === 'tab.png') {
           sticker.isTab = true;
           tabImg = sticker;
-        } else if (/^\d{2}\.png$/i.test(filename)) {
+        } else {
+          // Collect any other PNG as a sticker
           extractedStickers.push(sticker);
         }
       }
@@ -149,10 +186,12 @@ export default function App() {
 
       if (category === 'sticker') {
         addStickerGroup(newGroup);
-        const v = performValidation(extractedStickers, mainImg, tabImg, file.size);
+        const v = performValidation(extractedStickers, mainImg, tabImg, file.size, category);
         setValidationResult(v);
       } else {
         addEmojiGroup(newGroup);
+        const v = performValidation(extractedStickers, mainImg, tabImg, file.size, category);
+        setValidationResult(v);
       }
       setActivePanelTab(category);
 
@@ -216,7 +255,7 @@ export default function App() {
     setValidationResult(null);
   };
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     const fullContent = [...inputText];
     if (currentTyping.trim()) {
       fullContent.push(currentTyping);
@@ -227,24 +266,34 @@ export default function App() {
     const filteredContent = fullContent.filter(item => typeof item !== 'string' || item.trim() !== '');
     if (filteredContent.length === 0) return;
 
+    // Convert any stickers/emojis in content to standalone Data URLs
+    const finalContent = await Promise.all(filteredContent.map(async (item) => {
+      if (typeof item === 'string') return item;
+      return stickerToPreviewSticker(item);
+    }));
+
     let type: Message['type'] = 'text';
-    const isOnlyEmojis = filteredContent.every(item => typeof item !== 'string');
+    const isOnlyEmojis = finalContent.every(item => typeof item !== 'string');
     
     if (isOnlyEmojis) {
-      if (filteredContent.length === 1) {
+      if (finalContent.length === 1) {
         type = 'sticker';
-      } else if (filteredContent.length <= 3) {
+      } else if (finalContent.length <= 3) {
         type = 'emoji-combined';
       }
     }
+    
+    // Check if it's emoji-based sticker (for single emoji case)
+    const isEmoji = isOnlyEmojis;
 
     const newMessage: Message = {
       id: generateId(),
       sender: settings.senderType,
       timestamp: new Date(),
       type: type,
-      stickerId: (type === 'sticker' && typeof filteredContent[0] !== 'string') ? (filteredContent[0] as Sticker).id : undefined,
-      content: [...filteredContent]
+      isEmoji: isEmoji,
+      stickerId: (type === 'sticker' && typeof finalContent[0] !== 'string') ? (finalContent[0] as Sticker).id : undefined,
+      content: [...finalContent]
     };
 
     setMessages((prev) => [...prev, newMessage]);
@@ -252,17 +301,25 @@ export default function App() {
     setCurrentTyping("");
   };
 
-  const handleSelectionClick = (item: Sticker) => {
+  const handleSelectionClick = async (item: Sticker) => {
+    if (reactionTargetId) {
+      // Reaction selection mode
+      const previewSticker = await stickerToPreviewSticker(item);
+      setMessages(prev => prev.map(m => m.id === reactionTargetId ? { ...m, reactions: [...(m.reactions || []), previewSticker] } : m));
+      setReactionTargetId(null);
+      return;
+    }
+
+    const previewSticker = await stickerToPreviewSticker(item);
     if (activePanelTab === 'sticker') {
-      sendMessage(); // First send any current typing if needed? Or just send the sticker?
-      // Actually standard behavior: sticker is sent immediately.
       const newMessage: Message = {
         id: generateId(),
         sender: settings.senderType,
         timestamp: new Date(),
         type: 'sticker',
-        stickerId: item.id,
-        content: [item]
+        isEmoji: false,
+        stickerId: previewSticker.id,
+        content: [previewSticker]
       };
       setMessages((prev) => [...prev, newMessage]);
     } else {
@@ -270,7 +327,7 @@ export default function App() {
         setInputText((prev) => [...prev, currentTyping]);
         setCurrentTyping("");
       }
-      setInputText((prev) => [...prev, item]);
+      setInputText((prev) => [...prev, previewSticker]);
     }
   };
 
@@ -314,7 +371,6 @@ export default function App() {
           </div>
         </div>
         <div className="flex gap-2">
-          {/* Removed capture button */}
         </div>
       </header>
 
@@ -331,9 +387,7 @@ export default function App() {
             onRemoveMessage={(id: string) => setMessages((prev) => prev.filter((m) => m.id !== id))}
             setCurrentTyping={setCurrentTyping}
             talkRef={talkRef}
-            phoneFrameRef={phoneFrameRef}
             messagesEndRef={messagesEndRef}
-            allStickers={allStickers}
             activePanelTab={activePanelTab}
             setActivePanelTab={setActivePanelTab}
             stickerGroups={stickerGroups}
@@ -348,6 +402,10 @@ export default function App() {
             isMobileFullscreen={isMobileFullscreen}
             setIsMobileFullscreen={setIsMobileFullscreen}
             onToggleSender={toggleMessageSender}
+            onAddReaction={(id) => {
+              setReactionTargetId(id);
+              setActivePanelTab('emoji');
+            }}
           />
 
           {!isMobileFullscreen && (
@@ -381,6 +439,9 @@ export default function App() {
             onPngUpload={handlePngUpload}
             stickerGroupsCount={stickerGroups.length}
             emojiGroupsCount={emojiGroups.length}
+            stickerGroups={stickerGroups}
+            emojiGroups={emojiGroups}
+            onRemoveGroup={handleRemoveGroup}
           />
 
           <ValidationPanel 

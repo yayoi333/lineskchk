@@ -7,7 +7,7 @@ export const BACKGROUND_COLORS = [
   { name: 'オレンジ', value: '#F97316' },
 ];
 
-export const DEFAULT_SKY_BG = 'linear-gradient(to bottom, #86A8D6, #ACC6EA)';
+export const DEFAULT_SKY_BG = 'linear-gradient(to bottom, #93aad4, #9ab0d7)';
 
 export const OPPONENT_AVATAR_SVG = `
 <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -23,8 +23,18 @@ export const VALIDATION_CRITERIA = {
   FORMAT: 'PNG (透過必須)',
   SIZE_LIMIT: '1MB以下/画像',
   ZIP_LIMIT: '20MB以下',
-  DIMENSIONS: 'W370×H320px 以内',
-  COUNT_VARIANTS: [8, 16, 24, 32, 40],
+  STICKER: {
+    DIMENSIONS: 'W370×H320px 以内',
+    WIDTH: 370,
+    HEIGHT: 320,
+    COUNT_VARIANTS: [8, 16, 24, 32, 40],
+  },
+  EMOJI: {
+    DIMENSIONS: 'W180×H180px 以内',
+    WIDTH: 180,
+    HEIGHT: 180,
+    COUNT_VARIANTS: [8, 16, 24, 32, 40], // LINE Emoji count variants appear similar
+  },
   MAIN_SIZE: { w: 240, h: 240 },
   TAB_SIZE: { w: 96, h: 74 },
 };

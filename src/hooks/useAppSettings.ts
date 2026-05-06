@@ -11,7 +11,11 @@ export const useAppSettings = () => {
       backgroundImage: null,
       senderType: 'me',
       showNotch: true,
-      opponentName: '映えチェッカーくん'
+      opponentName: '映えチェッカーくん',
+      showReadStatus: false,
+      readCount: 1,
+      showStar: false,
+      showOpponentNameInTalk: true
     };
 
     if (saved) {
@@ -36,11 +40,23 @@ export const useAppSettings = () => {
     const toSave = {
       backgroundColor: settings.backgroundColor,
       showNotch: settings.showNotch,
-      opponentName: settings.opponentName
+      opponentName: settings.opponentName,
+      showReadStatus: settings.showReadStatus,
+      readCount: settings.readCount,
+      showStar: settings.showStar,
+      showOpponentNameInTalk: settings.showOpponentNameInTalk
       // backgroundImage is purposefully not saved to disk if it's a blob URL
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-  }, [settings.backgroundColor, settings.showNotch, settings.opponentName]);
+  }, [
+    settings.backgroundColor, 
+    settings.showNotch, 
+    settings.opponentName,
+    settings.showReadStatus,
+    settings.readCount,
+    settings.showStar,
+    settings.showOpponentNameInTalk
+  ]);
 
   return { settings, setSettings };
 };

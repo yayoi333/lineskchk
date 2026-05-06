@@ -35,22 +35,38 @@ export const ValidationPanel: React.FC<ValidationPanelProps> = ({ validation, on
 
         <div className="grid grid-cols-3 gap-2">
           <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 flex flex-col items-center">
-            <span className="text-[10px] text-gray-400 font-bold mb-1">スタンプ数</span>
+            <span className="text-[10px] text-gray-400 font-bold mb-1">
+              {validation.category === 'emoji' ? '絵文字数' : 'スタンプ数'}
+            </span>
             <span className={`text-lg font-bold ${validation.counts.stickers > 0 ? 'text-gray-700' : 'text-red-500'}`}>{validation.counts.stickers}</span>
           </div>
           <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 flex flex-col items-center">
             <span className="text-[10px] text-gray-400 font-bold mb-1">main.png</span>
-            <span className={validation.counts.hasMain ? 'text-green-500' : 'text-red-500'}>
-              {validation.counts.hasMain ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
+            <span className={validation.counts.hasMain ? 'text-green-500' : 'text-orange-400'}>
+              {validation.counts.hasMain ? <CheckCircle2 size={20} /> : <AlertTriangle size={20} />}
             </span>
           </div>
           <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 flex flex-col items-center">
             <span className="text-[10px] text-gray-400 font-bold mb-1">tab.png</span>
-            <span className={validation.counts.hasTab ? 'text-green-500' : 'text-red-500'}>
-              {validation.counts.hasTab ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
+            <span className={validation.counts.hasTab ? 'text-green-500' : 'text-orange-400'}>
+              {validation.counts.hasTab ? <CheckCircle2 size={20} /> : <AlertTriangle size={20} />}
             </span>
           </div>
         </div>
+
+        {validation.warnings.length > 0 && (
+          <div className="space-y-2">
+            {validation.warnings.map((warning) => (
+              <div key={warning.id} className="flex gap-2 p-2 bg-orange-50/50 rounded-lg text-xs text-orange-600 border border-orange-100">
+                <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold">{warning.label}</p>
+                  <p className="opacity-80 leading-relaxed">{warning.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {validation.errors.length > 0 && (
           <div className="space-y-2">

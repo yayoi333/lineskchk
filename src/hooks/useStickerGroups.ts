@@ -27,21 +27,25 @@ export const useStickerGroups = () => {
 
   const removeStickerGroup = useCallback((id: string) => {
     setStickerGroups((prev) => {
-      const group = prev.find((g) => g.id === id);
-      if (group) cleanupGroup(group);
-      return prev.filter((g) => g.id !== id);
+      const next = prev.filter((g) => g.id !== id);
+      setActiveStickerGroupId((current) => {
+        if (current !== id) return current;
+        return next[0]?.id ?? null;
+      });
+      return next;
     });
-    if (activeStickerGroupId === id) setActiveStickerGroupId(null);
-  }, [activeStickerGroupId, cleanupGroup]);
+  }, []);
 
   const removeEmojiGroup = useCallback((id: string) => {
     setEmojiGroups((prev) => {
-      const group = prev.find((g) => g.id === id);
-      if (group) cleanupGroup(group);
-      return prev.filter((g) => g.id !== id);
+      const next = prev.filter((g) => g.id !== id);
+      setActiveEmojiGroupId((current) => {
+        if (current !== id) return current;
+        return next[0]?.id ?? null;
+      });
+      return next;
     });
-    if (activeEmojiGroupId === id) setActiveEmojiGroupId(null);
-  }, [activeEmojiGroupId, cleanupGroup]);
+  }, []);
 
   const clearAllGroups = useCallback(() => {
     stickerGroups.forEach(cleanupGroup);
@@ -51,6 +55,17 @@ export const useStickerGroups = () => {
     setActiveStickerGroupId(null);
     setActiveEmojiGroupId(null);
   }, [stickerGroups, emojiGroups, cleanupGroup]);
+
+  const removeStickerFromGroup = useCallback((groupId: string, stickerId: string, category: 'sticker' | 'emoji') => {
+    const setter = category === 'sticker' ? setStickerGroups : setEmojiGroups;
+    setter((prev) => prev.map(group => {
+      if (group.id !== groupId) return group;
+      return {
+        ...group,
+        stickers: group.stickers.filter(s => s.id !== stickerId)
+      };
+    }));
+  }, []);
 
   return {
     stickerGroups,
@@ -63,6 +78,7 @@ export const useStickerGroups = () => {
     addEmojiGroup,
     removeStickerGroup,
     removeEmojiGroup,
+    removeStickerFromGroup,
     clearAllGroups
   };
 };

@@ -1,17 +1,17 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Trash2, ArrowLeftRight, X } from 'lucide-react';
-import { Message, Sticker, AppSettings } from '../types';
+import { Trash2, ArrowLeftRight, X, Star, Smile } from 'lucide-react';
+import { Message, AppSettings } from '../types';
 import { OPPONENT_AVATAR_SVG } from '../constants';
 
 interface MessageBubbleProps {
   msg: Message;
   isFirstInSequence: boolean;
   isLastInSequence: boolean;
-  allStickers: Sticker[];
   onRemove: (id: string) => void;
   formatTime: (date: Date) => string;
   onToggleSender?: (id: string) => void;
+  onAddReaction?: (id: string) => void;
   settings: AppSettings;
 }
 
@@ -19,10 +19,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   msg,
   isFirstInSequence,
   isLastInSequence,
-  allStickers,
   onRemove,
   formatTime,
   onToggleSender,
+  onAddReaction,
   settings
 }) => {
   const [showMenu, setShowMenu] = React.useState(false);
@@ -123,6 +123,22 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
             <button 
               onClick={() => {
+                if (onAddReaction) onAddReaction(msg.id);
+                setShowMenu(false);
+              }}
+              className="flex items-center gap-3 w-full p-4 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-all active:scale-95"
+            >
+              <div className="w-10 h-10 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-500">
+                <Smile size={20} />
+              </div>
+              <div className="text-left">
+                <div className="text-sm font-bold text-gray-800">リアクションを選択</div>
+                <div className="text-[10px] text-gray-400">メッセージにリアクションを付けます</div>
+              </div>
+            </button>
+
+            <button 
+              onClick={() => {
                 onRemove(msg.id);
                 setShowMenu(false);
               }}
@@ -151,9 +167,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
           </div>
         )}
 
-        <div className="flex flex-col">
+        <div className={`flex flex-col ${msg.sender === 'opponent' && (!isFirstInSequence || !settings.showOpponentNameInTalk) ? 'mt-1' : ''}`}>
           {/* Name (Opponent Only) */}
-          {msg.sender === 'opponent' && isFirstInSequence && (
+          {msg.sender === 'opponent' && isFirstInSequence && settings.showOpponentNameInTalk && (
             <span className="text-[11px] mb-0.5 ml-0.5" style={{ color: '#6b7280' }}>{settings.opponentName}</span>
           )}
 
@@ -163,12 +179,12 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
               {msg.type === 'sticker' ? (
                 <div className="relative">
                   {(() => {
-                    const sticker = allStickers.find(s => s.id === msg.stickerId);
+                    const sticker = msg.content && msg.content[0] && typeof msg.content[0] !== 'string' ? msg.content[0] : null;
                     return sticker ? (
                       <img 
                         src={sticker.url} 
-                        alt={sticker.name}
-                        className="max-w-[155px] h-auto rounded-lg select-none"
+                        alt={sticker.name || ''}
+                        className={`${msg.isEmoji ? 'w-[120px]' : 'max-w-[155px]'} h-auto rounded-lg select-none`}
                         draggable={false}
                         referrerPolicy="no-referrer"
                       />
@@ -185,7 +201,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                         key={i} 
                         src={item.url} 
                         alt="" 
-                        className={`${msg.content?.length === 2 ? 'w-16 h-16' : 'w-12 h-12'} select-none object-contain`} 
+                        className={`${msg.content?.length === 2 ? 'w-[75px]' : msg.content?.length === 3 ? 'w-[55px]' : 'w-[45px]'} select-none object-contain h-auto`} 
                         referrerPolicy="no-referrer" 
                       />
                     )
@@ -225,13 +241,62 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
               </div>
             </div>
 
-            {/* Timestamp */}
+            {/* Status & Timestamp */}
             {isLastInSequence && (
-              <span className="text-[10px] mb-1 whitespace-nowrap" style={{ color: '#6b7280' }}>
-                {formatTime(msg.timestamp)}
-              </span>
+              <div className={`flex flex-col relative ${msg.sender === 'me' ? 'items-end' : 'items-start'} self-stretch min-w-[28px]`}>
+                {/* Star mark for stickers only, centered vertically */}
+                {msg.sender === 'me' && msg.type === 'sticker' && !msg.isEmoji && settings.showStar && (
+                  <div 
+                    className="absolute top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center pointer-events-none"
+                    style={{ backgroundColor: '#7b92b4', right: 0 }}
+                  >
+                    <Star size={16} fill="none" stroke="white" strokeWidth={1.5} />
+                  </div>
+                )}
+                
+                {/* Read status and Time at the bottom */}
+                <div className={`flex flex-col mt-auto mb-1 ${msg.sender === 'me' ? 'items-end' : 'items-start'}`}>
+                  {msg.sender === 'me' && settings.showReadStatus && (
+                    <span 
+                      className="text-[9px] leading-tight" 
+                      style={{ 
+                        color: (settings.backgroundColor === 'default' || settings.backgroundColor === 'white')
+                          ? '#6b7280' 
+                          : 'white'
+                      }}
+                    >
+                      既読{settings.readCount > 0 ? ` ${settings.readCount}` : ''}
+                    </span>
+                  )}
+                  <span 
+                    className="text-[9px] leading-tight whitespace-nowrap" 
+                    style={{ 
+                      color: (settings.backgroundColor === 'default' || settings.backgroundColor === 'white')
+                        ? '#6b7280' 
+                        : 'white'
+                    }}
+                  >
+                    {formatTime(msg.timestamp)}
+                  </span>
+                </div>
+              </div>
             )}
           </div>
+          
+          {/* Reactions */}
+          {msg.reactions && msg.reactions.length > 0 && (
+            <motion.div 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className={`mt-1 flex flex-wrap gap-0.5 ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+            >
+              {msg.reactions.map((reaction, i) => (
+                <div key={i} className="pointer-events-none">
+                  <img src={reaction.url} alt="reaction" className="w-[16.8px] h-[16.8px] object-contain" referrerPolicy="no-referrer" />
+                </div>
+              ))}
+            </motion.div>
+          )}
         </div>
       </div>
     </motion.div>

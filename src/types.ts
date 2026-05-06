@@ -26,14 +26,17 @@ export interface Message {
   sender: Sender;
   timestamp: Date;
   type: 'sticker' | 'text' | 'emoji-combined';
+  isEmoji?: boolean;
   stickerId?: string; // For legacy/pure stickers
   content?: (string | Sticker)[]; // For text + inline emojis
+  reactions?: Sticker[];
 }
 
 export interface ValidationResult {
   passed: boolean;
   errors: ValidationError[];
   warnings: ValidationWarning[];
+  category: 'sticker' | 'emoji';
   counts: {
     stickers: number;
     hasMain: boolean;
@@ -59,4 +62,8 @@ export interface AppSettings {
   senderType: Sender;
   showNotch: boolean;
   opponentName: string;
+  showReadStatus: boolean;
+  readCount: number;
+  showStar: boolean;
+  showOpponentNameInTalk: boolean;
 }

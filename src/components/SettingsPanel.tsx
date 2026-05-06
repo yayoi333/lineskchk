@@ -62,6 +62,58 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
             </button>
           </div>
 
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-gray-600">既読を表示</span>
+            <button 
+              onClick={() => setSettings((prev) => ({ ...prev, showReadStatus: !prev.showReadStatus }))}
+              className={`relative w-12 h-6 rounded-full transition-all border-2 ${settings.showReadStatus ? 'bg-[#06C755] border-[#06C755]' : 'bg-gray-200 border-gray-200'}`}
+            >
+              <motion.div 
+                className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm"
+                animate={{ x: settings.showReadStatus ? 24 : 0 }}
+              />
+            </button>
+          </div>
+
+          {settings.showReadStatus && (
+            <div className="flex items-center justify-between pl-4">
+              <span className="text-xs text-gray-500">既読数</span>
+              <input 
+                type="number"
+                min="0"
+                value={settings.readCount}
+                onChange={(e) => setSettings((prev) => ({ ...prev, readCount: Math.max(0, parseInt(e.target.value) || 0) }))}
+                className="w-16 px-2 py-1 bg-gray-50 border border-gray-100 rounded-lg text-sm text-center"
+              />
+            </div>
+          )}
+
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-gray-600">お気に入り(☆)を表示</span>
+            <button 
+              onClick={() => setSettings((prev) => ({ ...prev, showStar: !prev.showStar }))}
+              className={`relative w-12 h-6 rounded-full transition-all border-2 ${settings.showStar ? 'bg-[#06C755] border-[#06C755]' : 'bg-gray-200 border-gray-200'}`}
+            >
+              <motion.div 
+                className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm"
+                animate={{ x: settings.showStar ? 24 : 0 }}
+              />
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-gray-600">トーク内の相手の名前を表示</span>
+            <button 
+              onClick={() => setSettings((prev) => ({ ...prev, showOpponentNameInTalk: !prev.showOpponentNameInTalk }))}
+              className={`relative w-12 h-6 rounded-full transition-all border-2 ${settings.showOpponentNameInTalk ? 'bg-[#06C755] border-[#06C755]' : 'bg-gray-200 border-gray-200'}`}
+            >
+              <motion.div 
+                className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm"
+                animate={{ x: settings.showOpponentNameInTalk ? 24 : 0 }}
+              />
+            </button>
+          </div>
+
           {/* Fullscreen Toggle */}
           <div className="flex items-center justify-between pt-4 border-t border-gray-50 border-dashed">
             <div className="flex flex-col">
@@ -99,7 +151,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           <button
             onClick={() => setSettings((prev) => ({ ...prev, backgroundColor: 'default', backgroundImage: null }))}
             className={`w-10 h-10 rounded-xl border-2 transition-all ${settings.backgroundColor === 'default' ? 'border-[#06C755] scale-110 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'}`}
-            style={{ background: 'linear-gradient(to bottom, #86A8D6, #ACC6EA)' }}
+            style={{ background: 'linear-gradient(to bottom, #93aad4, #9ab0d7)' }}
             title="標準背景"
           />
           {BACKGROUND_COLORS.map(c => (

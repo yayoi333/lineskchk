@@ -87,7 +87,9 @@ export const StickerPanel: React.FC<StickerPanelProps> = ({
             {activeGroup.stickers.map(s => (
               <button 
                 key={s.id}
-                onClick={() => onSelect(s)}
+                onClick={() => {
+                  onSelect(s);
+                }}
                 className={`aspect-square p-1 hover:bg-gray-50 rounded-md transition-all active:scale-95 flex items-center justify-center ${activePanelTab === 'emoji' ? 'scale-110' : ''}`}
               >
                 <img src={s.url} alt={s.name} className="w-full h-full object-contain" referrerPolicy="no-referrer" />

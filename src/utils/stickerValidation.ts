@@ -5,16 +5,17 @@ export const validateImageSize = (file: File): boolean => {
   return file.size <= 1024 * 1024; // 1MB
 };
 
-export const validateDimensions = (width: number, height: number): boolean => {
-  return width <= 370 && height <= 320;
+export const validateDimensions = (width: number, height: number, category: 'sticker' | 'emoji' = 'sticker'): boolean => {
+  const criteria = category === 'emoji' ? VALIDATION_CRITERIA.EMOJI : VALIDATION_CRITERIA.STICKER;
+  return width <= criteria.WIDTH && height <= criteria.HEIGHT;
 };
 
 export const validateMainImage = (width: number, height: number): boolean => {
-  return width === 240 && height === 240;
+  return width === VALIDATION_CRITERIA.MAIN_SIZE.w && height === VALIDATION_CRITERIA.MAIN_SIZE.h;
 };
 
 export const validateTabImage = (width: number, height: number): boolean => {
-  return width === 96 && height === 74;
+  return width === VALIDATION_CRITERIA.TAB_SIZE.w && height === VALIDATION_CRITERIA.TAB_SIZE.h;
 };
 
 export const getBasename = (path: string): string => {
@@ -25,10 +26,14 @@ export const performValidation = (
   extractedStickers: Sticker[],
   mainImg: Sticker | null,
   tabImg: Sticker | null,
-  fileSize: number
+  fileSize: number,
+  category: 'sticker' | 'emoji' = 'sticker'
 ): ValidationResult => {
   const errors: ValidationError[] = [];
   const warnings: ValidationWarning[] = [];
+
+  const criteria = category === 'emoji' ? VALIDATION_CRITERIA.EMOJI : VALIDATION_CRITERIA.STICKER;
+  const labelPrefix = category === 'emoji' ? '絵文字' : 'スタンプ';
 
   // ZIP Size check
   if (fileSize > 20 * 1024 * 1024) {
@@ -37,20 +42,20 @@ export const performValidation = (
 
   // Count check
   const stickerCount = extractedStickers.length;
-  if (!VALIDATION_CRITERIA.COUNT_VARIANTS.includes(stickerCount)) {
+  if (!criteria.COUNT_VARIANTS.includes(stickerCount)) {
     errors.push({ 
       id: 'count', 
       label: '枚数エラー', 
-      description: `スタンプは8, 16, 24, 32, 40枚のいずれかである必要があります。（現在: ${stickerCount}枚）` 
+      description: `${labelPrefix}は${criteria.COUNT_VARIANTS.join(', ')}枚のいずれかである必要があります。（現在: ${stickerCount}枚）` 
     });
   }
 
   // Main / Tab presence
   if (!mainImg) {
-    errors.push({ id: 'missing_main', label: 'main.png欠如', description: 'メイン画像(main.png)が必要です。' });
+    warnings.push({ id: 'missing_main', label: 'main.png欠損', description: 'メイン画像(main.png)が見つかりません。' });
   }
   if (!tabImg) {
-    errors.push({ id: 'missing_tab', label: 'tab.png欠如', description: 'タブ画像(tab.png)が必要です。' });
+    warnings.push({ id: 'missing_tab', label: 'tab.png欠損', description: 'タブ画像(tab.png)が見つかりません。一番最初のスタンプが代用されます。' });
   }
 
   // Dimension & Individual size checks
@@ -64,15 +69,15 @@ export const performValidation = (
     if (s.width && s.height) {
       if (s.isMain) {
         if (!validateMainImage(s.width, s.height)) {
-          errors.push({ id: `dim_${s.name}`, label: 'サイズ不備', description: `${s.name}: 240x240pxである必要があります。（現在: ${s.width}x${s.height}）` });
+          errors.push({ id: `dim_${s.name}`, label: 'サイズ不備', description: `${s.name}: ${VALIDATION_CRITERIA.MAIN_SIZE.w}x${VALIDATION_CRITERIA.MAIN_SIZE.h}pxである必要があります。（現在: ${s.width}x${s.height}）` });
         }
       } else if (s.isTab) {
         if (!validateTabImage(s.width, s.height)) {
-          errors.push({ id: `dim_${s.name}`, label: 'サイズ不備', description: `${s.name}: 96x74pxである必要があります。（現在: ${s.width}x${s.height}）` });
+          errors.push({ id: `dim_${s.name}`, label: 'サイズ不備', description: `${s.name}: ${VALIDATION_CRITERIA.TAB_SIZE.w}x${VALIDATION_CRITERIA.TAB_SIZE.h}pxである必要があります。（現在: ${s.width}x${s.height}）` });
         }
       } else {
-        if (!validateDimensions(s.width, s.height)) {
-          errors.push({ id: `dim_${s.name}`, label: 'サイズ不備', description: `${s.name}: W370xH320px以内である必要があります。（現在: ${s.width}x${s.height}）` });
+        if (!validateDimensions(s.width, s.height, category)) {
+          errors.push({ id: `dim_${s.name}`, label: 'サイズ不備', description: `${s.name}: ${criteria.DIMENSIONS}である必要があります。（現在: ${s.width}x${s.height}）` });
         }
       }
     }
@@ -82,6 +87,7 @@ export const performValidation = (
     passed: errors.length === 0,
     errors,
     warnings,
+    category,
     counts: {
       stickers: stickerCount,
       hasMain: !!mainImg,
