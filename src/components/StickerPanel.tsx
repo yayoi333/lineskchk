@@ -51,22 +51,16 @@ export const StickerPanel: React.FC<StickerPanelProps> = ({
       {/* Category Switcher bar */}
       <div className="h-12 pl-3 pr-0 flex items-center justify-between bg-white border-b border-gray-100 uppercase overflow-hidden">
         <div className="flex items-center gap-3 h-full">
-          {/* Toggle Switch - Fixed Position State Inversion Style */}
+          {/* Toggle Switch - Overlapping Icons Style */}
           <div 
-            onClick={() => setActivePanelTab(prev => (prev === 'sticker' || prev === 'settings') ? 'emoji' : 'sticker')}
-            className="h-[32px] px-1 bg-[#2D3340] rounded-full cursor-pointer flex items-center"
+            onClick={() => setActivePanelTab(prev => prev === 'sticker' ? 'emoji' : 'sticker')}
+            className="h-[32px] px-2 bg-[#2D3340] rounded-full cursor-pointer flex items-center transition-all"
           >
-            <div className="flex items-center -space-x-1.5 h-full relative">
-              {/* Sticker Icon */}
-              <div 
-                className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors duration-200 ${effectiveTab === 'sticker' ? 'z-20 bg-white text-[#2D3340]' : 'z-10 bg-transparent text-white opacity-30 shadow-none'}`}
-              >
-                <Smile size={18} />
+            <div className="flex items-center -space-x-1.5 h-full">
+              <div className={`transition-all duration-300 ${effectiveTab === 'sticker' ? 'z-20 text-white scale-110' : 'z-10 text-white opacity-30 scale-90'}`}>
+                <Smile size={20} />
               </div>
-              {/* Emoji Icon */}
-              <div 
-                className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors duration-200 ${effectiveTab === 'emoji' ? 'z-20 bg-white text-[#2D3340]' : 'z-10 bg-transparent text-white opacity-30 shadow-none'}`}
-              >
+              <div className={`transition-all duration-300 ${effectiveTab === 'emoji' ? 'z-20 text-white scale-110' : 'z-10 text-white opacity-30 scale-90'}`}>
                 <svg viewBox="0 0 24 24" className="w-5 h-5">
                   <path fill="currentColor" d="M4.5,10.6c0-1.8,1.5-3.3,3.3-3.3c0.4,0,0.8,0.1,1.1,0.2c1.1-1.2,2.7-2,4.4-2s3.3,0.8,4.4,2c0.3-0.1,0.7-0.2,1.1-0.2c1.8,0,3.3,1.5,3.3,3.3c0,1.2-0.7,2.3-1.7,2.8c0.1,0.5,0.2,1.1,0.2,1.6c0,4.4-3.6,8-8,8s-8-3.59-8-8c0-0.5,0.1-1.1,0.2-1.6C5.2,12.9,4.5,11.8,4.5,10.6z M12,14c-1.1,0-2,0.9-2,2s0.9,2,2,2s2-0.9,2-2S13.1,14,12,14z M8,12c-0.6,0-1,0.4-1,1s0.4,1,1,1s1-0.4,1-1S8.6,12,8,12z M16,12c-0.6,0-1,0.4-1,1s0.4,1,1,1s1-0.4,1-1S16.6,12,16,12z"/>
                 </svg>
@@ -98,7 +92,7 @@ export const StickerPanel: React.FC<StickerPanelProps> = ({
 
         {/* Settings Gear Icon (always on the right) */}
         <button 
-          onClick={() => setActivePanelTab('settings')}
+          onClick={() => setActivePanelTab(prev => prev === 'settings' ? effectiveTab : 'settings')}
           className={`h-full pl-3 pr-2 flex items-center justify-center transition-all ${activePanelTab === 'settings' ? 'text-[#06C755] bg-gray-50' : 'text-gray-400 hover:text-gray-600'}`}
         >
           <Settings size={22} className={activePanelTab === 'settings' ? 'animate-spin-slow' : ''} />
@@ -133,22 +127,22 @@ export const StickerPanel: React.FC<StickerPanelProps> = ({
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-gray-600">既読表示</span>
-                  <button 
-                    onClick={() => setSettings((prev) => ({ ...prev, showReadStatus: !prev.showReadStatus }))}
-                    className={`relative w-8 h-4.5 rounded-full transition-all border ${settings.showReadStatus ? 'bg-[#06C755] border-[#06C755]' : 'bg-gray-200 border-gray-200'}`}
-                  >
-                    <motion.div className="absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full shadow-sm" animate={{ x: settings.showReadStatus ? 14 : 0 }} />
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold text-gray-600">お気に入り(☆)</span>
                   <button 
                     onClick={() => setSettings((prev) => ({ ...prev, showStar: !prev.showStar }))}
                     className={`relative w-8 h-4.5 rounded-full transition-all border ${settings.showStar ? 'bg-[#06C755] border-[#06C755]' : 'bg-gray-200 border-gray-200'}`}
                   >
                     <motion.div className="absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full shadow-sm" animate={{ x: settings.showStar ? 14 : 0 }} />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-gray-600">既読表示</span>
+                  <button 
+                    onClick={() => setSettings((prev) => ({ ...prev, showReadStatus: !prev.showReadStatus }))}
+                    className={`relative w-8 h-4.5 rounded-full transition-all border ${settings.showReadStatus ? 'bg-[#06C755] border-[#06C755]' : 'bg-gray-200 border-gray-200'}`}
+                  >
+                    <motion.div className="absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full shadow-sm" animate={{ x: settings.showReadStatus ? 14 : 0 }} />
                   </button>
                 </div>
 
@@ -162,8 +156,37 @@ export const StickerPanel: React.FC<StickerPanelProps> = ({
                   </button>
                 </div>
 
+                {settings.showReadStatus && (
+                  <div className="flex items-center justify-between bg-gray-50 px-2 py-1.5 rounded-lg col-span-2">
+                    <span className="text-[11px] font-bold text-gray-600">既読数</span>
+                    <div className="flex items-center bg-white border border-gray-200 rounded-md overflow-hidden">
+                      <input 
+                        type="number"
+                        min="0"
+                        value={settings.readCount}
+                        onChange={(e) => setSettings((prev) => ({ ...prev, readCount: Math.max(0, parseInt(e.target.value) || 0) }))}
+                        className="w-12 px-2 py-0.5 text-[11px] font-mono text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <div className="flex flex-col border-l border-gray-200">
+                        <button 
+                          onClick={() => setSettings(prev => ({ ...prev, readCount: prev.readCount + 1 }))}
+                          className="px-1.5 py-0 border-b border-gray-100 hover:bg-gray-50 flex items-center justify-center h-[11px]"
+                        >
+                          <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-bottom-[4px] border-bottom-gray-400" />
+                        </button>
+                        <button 
+                          onClick={() => setSettings(prev => ({ ...prev, readCount: Math.max(0, prev.readCount - 1) }))}
+                          className="px-1.5 py-0 hover:bg-gray-50 flex items-center justify-center h-[11px]"
+                        >
+                          <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-top-[4px] border-top-gray-400" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between col-span-2">
-                  <span className="text-[11px] font-bold text-gray-600">トーク内に相手の名前を表示</span>
+                  <span className="text-[11px] font-bold text-gray-600">相手の名前表示</span>
                   <button 
                     onClick={() => setSettings((prev) => ({ ...prev, showOpponentNameInTalk: !prev.showOpponentNameInTalk }))}
                     className={`relative w-8 h-4.5 rounded-full transition-all border ${settings.showOpponentNameInTalk ? 'bg-[#06C755] border-[#06C755]' : 'bg-gray-200 border-gray-200'}`}
@@ -172,24 +195,6 @@ export const StickerPanel: React.FC<StickerPanelProps> = ({
                   </button>
                 </div>
               </div>
-
-              {settings.showReadStatus && (
-                <div className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-xl">
-                  <span className="text-[11px] text-gray-500">既読数</span>
-                  <div className="flex items-center gap-2">
-                    <input 
-                      type="range"
-                      min="0"
-                      max="100"
-                      step="1"
-                      value={settings.readCount}
-                      onChange={(e) => setSettings((prev) => ({ ...prev, readCount: parseInt(e.target.value) || 0 }))}
-                      className="w-24 accent-[#06C755]"
-                    />
-                    <span className="text-[11px] font-mono w-4">{settings.readCount}</span>
-                  </div>
-                </div>
-              )}
 
               <div className="pt-3 border-t border-gray-100">
                 <div className="flex justify-between items-center mb-2">
