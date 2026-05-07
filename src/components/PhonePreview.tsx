@@ -16,8 +16,8 @@ interface PhonePreviewProps {
   setCurrentTyping: (val: string) => void;
   talkRef: React.RefObject<HTMLDivElement | null>;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
-  activePanelTab: 'sticker' | 'emoji';
-  setActivePanelTab: React.Dispatch<React.SetStateAction<'sticker' | 'emoji'>>;
+  activePanelTab: 'sticker' | 'emoji' | 'settings';
+  setActivePanelTab: React.Dispatch<React.SetStateAction<'sticker' | 'emoji' | 'settings'>>;
   stickerGroups: StickerGroup[];
   emojiGroups: StickerGroup[];
   activeStickerGroupId: string | null;
@@ -31,6 +31,10 @@ interface PhonePreviewProps {
   setIsMobileFullscreen?: (val: boolean) => void;
   onToggleSender?: (id: string) => void;
   onAddReaction?: (id: string) => void;
+  setSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
+  onBgUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  bgInputRef: React.RefObject<HTMLInputElement | null>;
+  onClearHistory: () => void;
 }
 
 export const PhonePreview: React.FC<PhonePreviewProps> = ({
@@ -58,7 +62,11 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({
   isMobileFullscreen = false,
   setIsMobileFullscreen,
   onToggleSender,
-  onAddReaction
+  onAddReaction,
+  setSettings,
+  onBgUpload,
+  bgInputRef,
+  onClearHistory
 }) => {
   const isCaniSend = inputText.length > 0 || currentTyping.trim().length > 0;
 
@@ -134,16 +142,13 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({
         <div className="flex flex-col gap-2 relative z-10">
           {messages.map((msg, index) => {
             const prevMsg = messages[index - 1];
-            const nextMsg = messages[index + 1];
             const isFirstInSequence = !prevMsg || prevMsg.sender !== msg.sender || !isSameMinute(prevMsg.timestamp, msg.timestamp);
-            const isLastInSequence = !nextMsg || nextMsg.sender !== msg.sender || !isSameMinute(nextMsg.timestamp, msg.timestamp);
 
             return (
               <MessageBubble 
                 key={msg.id}
                 msg={msg}
                 isFirstInSequence={isFirstInSequence}
-                isLastInSequence={isLastInSequence}
                 onRemove={onRemoveMessage}
                 formatTime={formatTime}
                 onToggleSender={onToggleSender}
@@ -223,6 +228,13 @@ export const PhonePreview: React.FC<PhonePreviewProps> = ({
           setActiveStickerGroupId={setActiveStickerGroupId}
           setActiveEmojiGroupId={setActiveEmojiGroupId}
           onSelect={handleSelectionClick}
+          settings={settings}
+          setSettings={setSettings}
+          isMobileFullscreen={isMobileFullscreen}
+          setIsMobileFullscreen={setIsMobileFullscreen || (() => {})}
+          onBgUpload={onBgUpload}
+          bgInputRef={bgInputRef}
+          onClearHistory={onClearHistory}
         />
       </div>
       

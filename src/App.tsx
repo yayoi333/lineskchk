@@ -73,7 +73,7 @@ export default function App() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [reactionTargetId, setReactionTargetId] = useState<string | null>(null);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
-  const [activePanelTab, setActivePanelTab] = useState<'sticker' | 'emoji'>('sticker');
+  const [activePanelTab, setActivePanelTab] = useState<'sticker' | 'emoji' | 'settings'>('sticker');
   const [isMobileFullscreen, setIsMobileFullscreen] = useState(false);
 
   // --- Refs ---
@@ -406,6 +406,10 @@ export default function App() {
               setReactionTargetId(id);
               setActivePanelTab('emoji');
             }}
+            setSettings={setSettings}
+            onBgUpload={handleBgUpload}
+            bgInputRef={bgInputRef}
+            onClearHistory={() => { if (confirm('トーク履歴をクリアしますか？')) setMessages([]); }}
           />
 
           {!isMobileFullscreen && (

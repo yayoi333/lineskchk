@@ -7,7 +7,6 @@ import { OPPONENT_AVATAR_SVG } from '../constants';
 interface MessageBubbleProps {
   msg: Message;
   isFirstInSequence: boolean;
-  isLastInSequence: boolean;
   onRemove: (id: string) => void;
   formatTime: (date: Date) => string;
   onToggleSender?: (id: string) => void;
@@ -18,7 +17,6 @@ interface MessageBubbleProps {
 export const MessageBubble: React.FC<MessageBubbleProps> = ({
   msg,
   isFirstInSequence,
-  isLastInSequence,
   onRemove,
   formatTime,
   onToggleSender,
@@ -242,45 +240,43 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             </div>
 
             {/* Status & Timestamp */}
-            {isLastInSequence && (
-              <div className={`flex flex-col relative ${msg.sender === 'me' ? 'items-end' : 'items-start'} self-stretch min-w-[28px]`}>
-                {/* Star mark for stickers only, centered vertically */}
-                {msg.sender === 'me' && msg.type === 'sticker' && !msg.isEmoji && settings.showStar && (
-                  <div 
-                    className="absolute top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center pointer-events-none"
-                    style={{ backgroundColor: '#7b92b4', right: 0 }}
-                  >
-                    <Star size={16} fill="none" stroke="white" strokeWidth={1.5} />
-                  </div>
-                )}
-                
-                {/* Read status and Time at the bottom */}
-                <div className={`flex flex-col mt-auto mb-1 ${msg.sender === 'me' ? 'items-end' : 'items-start'}`}>
-                  {msg.sender === 'me' && settings.showReadStatus && (
-                    <span 
-                      className="text-[9px] leading-tight" 
-                      style={{ 
-                        color: (settings.backgroundColor === 'default' || settings.backgroundColor === 'white')
-                          ? '#6b7280' 
-                          : 'white'
-                      }}
-                    >
-                      既読{settings.readCount > 0 ? ` ${settings.readCount}` : ''}
-                    </span>
-                  )}
+            <div className={`flex flex-col relative ${msg.sender === 'me' ? 'items-end' : 'items-start'} self-stretch min-w-[28px]`}>
+              {/* Star mark for stickers only, centered vertically */}
+              {msg.sender === 'me' && msg.type === 'sticker' && !msg.isEmoji && settings.showStar && (
+                <div 
+                  className="absolute top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center pointer-events-none"
+                  style={{ backgroundColor: '#7b92b4', right: 0 }}
+                >
+                  <Star size={16} fill="none" stroke="white" strokeWidth={1.5} />
+                </div>
+              )}
+              
+              {/* Read status and Time at the bottom */}
+              <div className={`flex flex-col mt-auto mb-1 ${msg.sender === 'me' ? 'items-end' : 'items-start'}`}>
+                {msg.sender === 'me' && settings.showReadStatus && (
                   <span 
-                    className="text-[9px] leading-tight whitespace-nowrap" 
+                    className="text-[9px] leading-tight" 
                     style={{ 
                       color: (settings.backgroundColor === 'default' || settings.backgroundColor === 'white')
                         ? '#6b7280' 
                         : 'white'
                     }}
                   >
-                    {formatTime(msg.timestamp)}
+                    既読{settings.readCount > 0 ? ` ${settings.readCount}` : ''}
                   </span>
-                </div>
+                )}
+                <span 
+                  className="text-[9px] leading-tight whitespace-nowrap" 
+                  style={{ 
+                    color: (settings.backgroundColor === 'default' || settings.backgroundColor === 'white')
+                      ? '#6b7280' 
+                      : 'white'
+                  }}
+                >
+                  {formatTime(msg.timestamp)}
+                </span>
               </div>
-            )}
+            </div>
           </div>
           
           {/* Reactions */}

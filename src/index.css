@@ -2,6 +2,7 @@
 
 @theme {
   --breakpoint-xs: 400px;
+  --animate-spin-slow: spin 3s linear infinite;
 }
 
 @utility scrollbar-hide {
