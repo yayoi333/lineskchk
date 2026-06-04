@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="映えチェッカーくん">
+  <rect width="64" height="64" rx="16" fill="#06C755"/>
+  <path
+    d="M26.2 43.4 14.8 32l5.1-5.1 6.3 6.3 18-18 5.1 5.1z"
+    fill="#fff"
+  />
+</svg>
