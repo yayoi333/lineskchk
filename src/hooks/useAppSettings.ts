@@ -15,7 +15,8 @@ export const useAppSettings = () => {
       showReadStatus: false,
       readCount: 1,
       showStar: false,
-      showOpponentNameInTalk: true
+      showOpponentNameInTalk: true,
+      loopAnimations: false
     };
 
     if (saved) {
@@ -44,7 +45,8 @@ export const useAppSettings = () => {
       showReadStatus: settings.showReadStatus,
       readCount: settings.readCount,
       showStar: settings.showStar,
-      showOpponentNameInTalk: settings.showOpponentNameInTalk
+      showOpponentNameInTalk: settings.showOpponentNameInTalk,
+      loopAnimations: settings.loopAnimations
       // backgroundImage is purposefully not saved to disk if it's a blob URL
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
@@ -55,7 +57,8 @@ export const useAppSettings = () => {
     settings.showReadStatus,
     settings.readCount,
     settings.showStar,
-    settings.showOpponentNameInTalk
+    settings.showOpponentNameInTalk,
+    settings.loopAnimations
   ]);
 
   return { settings, setSettings };

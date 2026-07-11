@@ -1,8 +1,9 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Trash2, ArrowLeftRight, X, Star, Smile } from 'lucide-react';
-import { Message, AppSettings } from '../types';
+import { Trash2, ArrowLeftRight, X, Star, Smile, RotateCcw } from 'lucide-react';
+import { Message, AppSettings, Sticker } from '../types';
 import { OPPONENT_AVATAR_SVG } from '../constants';
+import { StickerImage } from './StickerImage';
 
 interface MessageBubbleProps {
   msg: Message;
@@ -25,6 +26,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 }) => {
   const [showMenu, setShowMenu] = React.useState(false);
   const menuRef = React.useRef<HTMLDivElement>(null);
+
+  // 「もう1回」再生用。値を進めるとメッセージ内の動くスタンプが再生し直される
+  const [replayNonce, setReplayNonce] = React.useState(0);
+  const contentStickers = (msg.content ?? []).filter((item): item is Sticker => typeof item !== 'string');
+  const hasReplayableSticker = contentStickers.some(s => s.isAnimated && s.loopUrl);
 
   const handleLongPressMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -179,12 +185,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                   {(() => {
                     const sticker = msg.content && msg.content[0] && typeof msg.content[0] !== 'string' ? msg.content[0] : null;
                     return sticker ? (
-                      <img 
-                        src={sticker.url} 
+                      <StickerImage
+                        sticker={sticker}
+                        loop={settings.loopAnimations}
+                        replayNonce={replayNonce}
                         alt={sticker.name || ''}
                         className={`${msg.isEmoji ? 'w-[120px]' : 'max-w-[155px]'} h-auto rounded-lg select-none`}
                         draggable={false}
-                        referrerPolicy="no-referrer"
                       />
                     ) : (
                       <div className="w-20 h-20 bg-gray-100 rounded flex items-center justify-center text-[10px] text-gray-400">削除済</div>
@@ -195,12 +202,12 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                 <div className="flex gap-1 items-end">
                   {msg.content?.map((item, i) => (
                     typeof item !== 'string' && (
-                      <img 
-                        key={i} 
-                        src={item.url} 
-                        alt="" 
-                        className={`${msg.content?.length === 2 ? 'w-[75px]' : msg.content?.length === 3 ? 'w-[55px]' : 'w-[45px]'} select-none object-contain h-auto`} 
-                        referrerPolicy="no-referrer" 
+                      <StickerImage
+                        key={i}
+                        sticker={item}
+                        loop={settings.loopAnimations}
+                        replayNonce={replayNonce}
+                        className={`${msg.content?.length === 2 ? 'w-[75px]' : msg.content?.length === 3 ? 'w-[55px]' : 'w-[45px]'} select-none object-contain h-auto`}
                       />
                     )
                   ))}
@@ -219,7 +226,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                       typeof item === 'string' ? (
                         <span key={i} className="whitespace-pre-wrap">{item}</span>
                       ) : (
-                        <img key={i} src={item.url} alt="" className="w-5 h-5 inline-block align-bottom mx-0.5" referrerPolicy="no-referrer" />
+                        <StickerImage key={i} sticker={item} loop={settings.loopAnimations} replayNonce={replayNonce} className="w-5 h-5 inline-block align-bottom mx-0.5" />
                       )
                     ))}
                   </div>
@@ -228,7 +235,17 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 
               {/* Tool buttons */}
               <div className="absolute -top-2 -right-2 opacity-0 group-hover/sticker:opacity-100 transition-opacity flex gap-1 z-10">
-                <button 
+                {hasReplayableSticker && !settings.loopAnimations && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setReplayNonce(n => n + 1); }}
+                    className="p-1.5 border rounded-full shadow-md hover:text-[#06C755] transition-colors"
+                    style={{ backgroundColor: '#ffffff', borderColor: '#e5e7eb' }}
+                    title="もう1回再生"
+                  >
+                    <RotateCcw size={14} />
+                  </button>
+                )}
+                <button
                   onClick={(e) => { e.stopPropagation(); onRemove(msg.id); }}
                   className="p-1.5 border rounded-full shadow-md hover:text-red-500 transition-colors"
                   style={{ backgroundColor: '#ffffff', borderColor: '#e5e7eb' }}
@@ -288,7 +305,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             >
               {msg.reactions.map((reaction, i) => (
                 <div key={i} className="pointer-events-none">
-                  <img src={reaction.url} alt="reaction" className="w-[16.8px] h-[16.8px] object-contain" referrerPolicy="no-referrer" />
+                  <StickerImage sticker={reaction} loop={settings.loopAnimations} alt="reaction" className="w-[16.8px] h-[16.8px] object-contain" />
                 </div>
               ))}
             </motion.div>

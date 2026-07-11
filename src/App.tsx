@@ -29,6 +29,7 @@ import { useStickerGroups } from './hooks/useStickerGroups';
 import { generateId } from './utils/id';
 import { createManagedObjectURL, revokeManagedObjectURL } from './utils/objectUrl';
 import { performValidation, getBasename } from './utils/stickerValidation';
+import { isApng, toInfiniteLoopApng } from './utils/apng';
 
 // Components
 import { PhonePreview } from './components/PhonePreview';
@@ -102,9 +103,28 @@ export default function App() {
     if (!sticker.blob) return { ...sticker };
     try {
       const dataUrl = await blobToDataUrl(sticker.blob);
+
+      // APNG(動くスタンプ)なら、連続再生用に無限ループ版のData URLも用意する
+      let isAnimated = false;
+      let loopUrl: string | undefined;
+      try {
+        const bytes = new Uint8Array(await sticker.blob.arrayBuffer());
+        isAnimated = isApng(bytes);
+        if (isAnimated) {
+          const loopedBytes = toInfiniteLoopApng(bytes);
+          if (loopedBytes) {
+            loopUrl = await blobToDataUrl(new Blob([loopedBytes], { type: 'image/png' }));
+          }
+        }
+      } catch (apngErr) {
+        console.error('Failed to analyze APNG', apngErr);
+      }
+
       return {
         ...sticker,
         url: dataUrl,
+        isAnimated,
+        loopUrl,
         blob: undefined, // No longer need blob for the preview copy
       };
     } catch (err) {

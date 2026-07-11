@@ -186,6 +186,16 @@ export const StickerPanel: React.FC<StickerPanelProps> = ({
                 )}
 
                 <div className="flex items-center justify-between col-span-2">
+                  <span className="text-[11px] font-bold text-gray-600">動くスタンプを連続再生</span>
+                  <button
+                    onClick={() => setSettings((prev) => ({ ...prev, loopAnimations: !prev.loopAnimations }))}
+                    className={`relative w-8 h-4.5 rounded-full transition-all border ${settings.loopAnimations ? 'bg-[#06C755] border-[#06C755]' : 'bg-gray-200 border-gray-200'}`}
+                  >
+                    <motion.div className="absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full shadow-sm" animate={{ x: settings.loopAnimations ? 14 : 0 }} />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between col-span-2">
                   <span className="text-[11px] font-bold text-gray-600">相手の名前表示</span>
                   <button 
                     onClick={() => setSettings((prev) => ({ ...prev, showOpponentNameInTalk: !prev.showOpponentNameInTalk }))}

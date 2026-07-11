@@ -11,6 +11,10 @@ export interface Sticker {
   type?: string;
   isMain?: boolean;
   isTab?: boolean;
+  /** APNG(アニメーション)かどうか。トーク送信時のプレビュー変換で判定される */
+  isAnimated?: boolean;
+  /** 無限ループ版のData URL。有限ループのAPNGにのみ設定される */
+  loopUrl?: string;
 }
 
 export interface StickerGroup {
@@ -66,4 +70,5 @@ export interface AppSettings {
   readCount: number;
   showStar: boolean;
   showOpponentNameInTalk: boolean;
+  loopAnimations: boolean;
 }
